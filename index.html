@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TolqaDev - Anonim Chat</title>
+    <style>
+        body {
+            padding-top: 0;
+            font-size: 12px;
+            color: #777;
+            background: #f9f9f9;
+            font-family: 'Open Sans',sans-serif;
+            margin-top:20px;
+            max-height: 100%;
+        }
+        .bg-white {
+            background-color: #fff;
+        }
+        .friend-list {
+            list-style: none;
+            margin-left: -40px;
+        }
+        .friend-list li {
+            border-bottom: 1px solid #eee;
+        }
+        .friend-list li a img {
+            float: left;
+            width: 45px;
+            height: 45px;
+            margin-right: 10px;
+        }
+        .friend-list li a {
+            position: relative;
+            display: block;
+            padding: 10px;
+            transition: all .2s ease;
+            -webkit-transition: all .2s ease;
+            -moz-transition: all .2s ease;
+            -ms-transition: all .2s ease;
+            -o-transition: all .2s ease;
+        }
+        .friend-list li.active a {
+            background-color: #f1f5fc;
+        }
+        .friend-list li a .friend-name, 
+        .friend-list li a .friend-name:hover {
+            color: #777;
+        }
+        .friend-list li a .last-message {
+            width: 65%;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        .friend-list li a .time {
+            position: absolute;
+            top: 10px;
+            right: 8px;
+        }
+        small, .small {
+            font-size: 85%;
+        }
+        .friend-list li a .chat-alert {
+            position: absolute;
+            right: 8px;
+            top: 27px;
+            font-size: 10px;
+            padding: 3px 5px;
+        }
+        .chat-message {
+            padding: 60px 20px 115px;
+        }
+        .chat {
+            list-style: none;
+            margin: 0;
+        }
+        .chat-message{
+            background: #f9f9f9;  
+        }
+        .chat li img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50em;
+            -moz-border-radius: 50em;
+            -webkit-border-radius: 50em;
+        }
+        img {
+            max-width: 100%;
+        }
+        .chat-body {
+            padding-bottom: 20px;
+        }
+
+        .chat li.left .chat-body {
+            margin-left: 70px;
+            background-color: #fff;
+        }
+        .chat li .chat-body {
+            position: relative;
+            font-size: 11px;
+            padding: 10px;
+            border: 1px solid #f1f5fc;
+            box-shadow: 0 1px 1px rgba(0,0,0,.05);
+            -moz-box-shadow: 0 1px 1px rgba(0,0,0,.05);
+            -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05);
+        }
+        .chat li .chat-body .header {
+            padding-bottom: 5px;
+            border-bottom: 1px solid #f1f5fc;
+        }
+        .chat li .chat-body p {
+            margin: 0;
+        }
+        .chat li.left .chat-body:before {
+            position: absolute;
+            top: 10px;
+            left: -8px;
+            display: inline-block;
+            background: #fff;
+            width: 16px;
+            height: 16px;
+            border-top: 1px solid #f1f5fc;
+            border-left: 1px solid #f1f5fc;
+            content: '';
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg);
+            -moz-transform: rotate(-45deg);
+            -ms-transform: rotate(-45deg);
+            -o-transform: rotate(-45deg);
+        }
+        .chat li.right .chat-body:before {
+            position: absolute;
+            top: 10px;
+            right: -8px;
+            display: inline-block;
+            background: #fff;
+            width: 16px;
+            height: 16px;
+            border-top: 1px solid #f1f5fc;
+            border-right: 1px solid #f1f5fc;
+            content: '';
+            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg);
+            -moz-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+            -o-transform: rotate(45deg);
+        }
+        .chat li {
+            margin: 15px 0;
+        }
+        .chat li.right .chat-body {
+            margin-right: 70px;
+            background-color: #fff;
+        }
+        .chat-box {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            transition: all .5s ease;
+            -webkit-transition: all .5s ease;
+            -moz-transition: all .5s ease;
+            -ms-transition: all .5s ease;
+            -o-transition: all .5s ease;
+        }
+        .primary-font {
+            color: #3c8dbc;
+        }
+        a:hover, a:active, a:focus {
+            text-decoration: none;
+            outline: 0;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css?family=Jua|Nanum+Gothic&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.1.js" integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI=" crossorigin="anonymous"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+        var name = makeRandomName();
+        socket.emit("login", {
+            name: name,
+        });
+        socket.on("login", function(data) {
+            $("#chat").append('<p style="font-size: 10px;text-align: center;">"<font class="text-success">'+data.name+'</font>" Adlı kullanıcı sohbete katıldı</p>');
+        });
+        socket.on("disconnected", function(data) {
+           $("#chat").append('<p style="font-size: 10px;text-align: center;">"<font class="text-danger">'+data.name+'</font>" Adlı kullanıcı sohbetten ayrıldı</p>');
+        });
+        socket.on("chat", function(data) {
+            $("#chat").append('<li class="left clearfix"><div class="chat-body clearfix"><div class="header"><strong class="primary-font">'+data.name+'</strong></div><p>'+data.message+'</p></div></li>');
+        });
+        $(document).keypress( (e)=> {
+            if (e.which == 13){
+                e.preventDefault();
+                var message = $('#message').val();
+                if(message.length > 0){
+                    $("#chat").append('<li class="right clearfix"><div class="chat-body clearfix"><div class="header"><strong class="primary-font">'+name+'</strong></div><p>'+message+'</p></div></li>');
+                    socket.emit("chat", { msg: message }); $('#message').val("");
+                }
+            }
+        });
+        function makeRandomName(){
+            var name = "";
+            var possible = "abcdefghijklmnopqrstuvwxyz";
+            for( var i = 0; i < 5; i++ ) {
+                name += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return name;
+        }
+    </script>
+</head>
+<body>
+    <div class="container bootstrap snippets bootdey">
+        <div class="row">
+            <div class="col-md-12 mt-5">
+                <div class="chat-message">
+                    <ul class="chat" id="chat"></ul>
+                </div>
+                <div class="chat-box bg-white">
+                    <div class="input-group">
+                        <input class="form-control border no-shadow no-rounded" id="message" placeholder="Type your message here">
+                    </div>
+                </div>            
+            </div>        
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</body>
+</html>
